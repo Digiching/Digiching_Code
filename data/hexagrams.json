@@ -1,0 +1,451 @@
+{
+    "hexagrams": [{
+            "id": 1,
+            "name": "The Creative",
+            "image_file": "/hexagrams/1.bin",
+            "character": "䷀",
+            "phrase": "Success will come from the primal depths of the universe."
+        },
+        {
+            "id": 2,
+            "name": "The Receptive",
+            "image_file": "/hexagrams/2.bin",
+            "character": "䷁",
+            "phrase": "Earth over Earth - Receptivity and nurturing support"
+        },
+        {
+            "id": 3,
+            "name": "Difficulty at the Beginning",
+            "image_file": "/hexagrams/3.bin",
+            "character": "䷂",
+            "phrase": "Water over Thunder - New growth amidst chaos"
+        },
+        {
+            "id": 4,
+            "name": "Youthful Folly",
+            "image_file": "/hexagrams/4.bin",
+            "character": "䷃",
+            "phrase": "Mountain over Water - Learning through mentorship"
+        },
+        {
+            "id": 5,
+            "name": "Waiting",
+            "image_file": "/hexagrams/5.bin",
+            "character": "䷄",
+            "phrase": "Water over Heaven - Patience in anticipation"
+        },
+        {
+            "id": 6,
+            "name": "Conflict",
+            "image_file": "/hexagrams/6.bin",
+            "character": "䷅",
+            "phrase": "Heaven over Water - Resolution through discussion"
+        },
+        {
+            "id": 7,
+            "name": "The Army",
+            "image_file": "/hexagrams/7.bin",
+            "character": "䷆",
+            "phrase": "Earth over Water - Discipline and organization"
+        },
+        {
+            "id": 8,
+            "name": "Holding Together",
+            "image_file": "/hexagrams/8.bin",
+            "character": "䷇",
+            "phrase": "Water over Earth - Unity and mutual support"
+        },
+        {
+            "id": 9,
+            "name": "The Taming Power of the Small",
+            "image_file": "/hexagrams/9.bin",
+            "character": "䷈",
+            "phrase": "Wind over Heaven - Gentle restraint yields results"
+        },
+        {
+            "id": 10,
+            "name": "Treading",
+            "image_file": "/hexagrams/10.bin",
+            "character": "䷉",
+            "phrase": "Heaven over Lake - Careful progress despite danger"
+        },
+        {
+            "id": 11,
+            "name": "Peace",
+            "image_file": "/hexagrams/11.bin",
+            "character": "䷊",
+            "phrase": "Earth over Heaven - Harmony and receptive conditions"
+        },
+        {
+            "id": 12,
+            "name": "Standstill",
+            "image_file": "/hexagrams/12.bin",
+            "character": "䷋",
+            "phrase": "Heaven over Earth - Stagnation and withdrawal"
+        },
+        {
+            "id": 13,
+            "name": "Fellowship with Men",
+            "image_file": "/hexagrams/13.bin",
+            "character": "䷌",
+            "phrase": "Heaven over Fire - Community and shared vision"
+        },
+        {
+            "id": 14,
+            "name": "Possession in Great Measure",
+            "image_file": "/hexagrams/14.bin",
+            "character": "䷍",
+            "phrase": "Fire over Heaven - Abundance and good fortune"
+        },
+        {
+            "id": 15,
+            "name": "Modesty",
+            "image_file": "/hexagrams/15.bin",
+            "character": "䷎",
+            "phrase": "Earth over Mountain - Humility brings respect"
+        },
+        {
+            "id": 16,
+            "name": "Enthusiasm",
+            "image_file": "/hexagrams/16.bin",
+            "character": "䷏",
+            "phrase": "Thunder over Earth - Joy and inspiration spread"
+        },
+        {
+            "id": 17,
+            "name": "Following",
+            "image_file": "/hexagrams/17.bin",
+            "character": "䷐",
+            "phrase": "Lake over Thunder - Natural progression unfolds"
+        },
+        {
+            "id": 18,
+            "name": "Work on What Has Been Spoiled",
+            "image_file": "/hexagrams/18.bin",
+            "character": "䷑",
+            "phrase": "Mountain over Wind - Restoration requires effort"
+        },
+        {
+            "id": 19,
+            "name": "Approach",
+            "image_file": "/hexagrams/19.bin",
+            "character": "䷒",
+            "phrase": "Earth over Lake - Positive movement forward"
+        },
+        {
+            "id": 20,
+            "name": "Contemplation",
+            "image_file": "/hexagrams/20.bin",
+            "character": "䷓",
+            "phrase": "Wind over Earth - Observation precedes action"
+        },
+        {
+            "id": 21,
+            "name": "Biting Through",
+            "image_file": "/hexagrams/21.bin",
+            "character": "䷔",
+            "phrase": "Fire over Thunder - Clear judgment removes obstacles"
+        },
+        {
+            "id": 22,
+            "name": "Grace",
+            "image_file": "/hexagrams/22.bin",
+            "character": "䷕",
+            "phrase": "Mountain over Fire - Elegance in form and manner"
+        },
+        {
+            "id": 23,
+            "name": "Splitting Apart",
+            "image_file": "/hexagrams/23.bin",
+            "character": "䷖",
+            "phrase": "Mountain over Earth - Dissolution requires acceptance"
+        },
+        {
+            "id": 24,
+            "name": "Return",
+            "image_file": "/hexagrams/24.bin",
+            "character": "䷗",
+            "phrase": "Thunder over Earth - Renewal after withdrawal"
+        },
+        {
+            "id": 25,
+            "name": "Innocence",
+            "image_file": "/hexagrams/25.bin",
+            "character": "䷘",
+            "phrase": "Heaven over Thunder - Natural spontaneity succeeds"
+        },
+        {
+            "id": 26,
+            "name": "The Taming Power of the Great",
+            "image_file": "/hexagrams/26.bin",
+            "character": "䷙",
+            "phrase": "Mountain over Heaven - Great restraint accumulates power"
+        },
+        {
+            "id": 27,
+            "name": "The Corners of the Mouth",
+            "image_file": "/hexagrams/27.bin",
+            "character": "䷚",
+            "phrase": "Mountain over Thunder - Nourishment and sustenance"
+        },
+        {
+            "id": 28,
+            "name": "Preponderance of the Great",
+            "image_file": "/hexagrams/28.bin",
+            "character": "䷛",
+            "phrase": "Lake over Wind - Great stress requires flexibility"
+        },
+        {
+            "id": 29,
+            "name": "The Abysmal",
+            "image_file": "/hexagrams/29.bin",
+            "character": "䷜",
+            "phrase": "Water over Water - Repeated trials reveal truth"
+        },
+        {
+            "id": 30,
+            "name": "The Clinging",
+            "image_file": "/hexagrams/30.bin",
+            "character": "䷝",
+            "phrase": "Fire over Fire - Clarity through dependence"
+        },
+        {
+            "id": 31,
+            "name": "Influence",
+            "image_file": "/hexagrams/31.bin",
+            "character": "䷞",
+            "phrase": "Lake over Mountain - Receptivity yields influence"
+        },
+        {
+            "id": 32,
+            "name": "Duration",
+            "image_file": "/hexagrams/32.bin",
+            "character": "䷟",
+            "phrase": "Thunder over Wind - Persistence establishes value"
+        },
+        {
+            "id": 33,
+            "name": "Retreat",
+            "image_file": "/hexagrams/33.bin",
+            "character": "䷠",
+            "phrase": "Mountain over Heaven - Withdrawal preserves strength"
+        },
+        {
+            "id": 34,
+            "name": "The Power of the Great",
+            "image_file": "/hexagrams/34.bin",
+            "character": "䷡",
+            "phrase": "Thunder over Heaven - Mighty strength requires wisdom"
+        },
+        {
+            "id": 35,
+            "name": "Progress",
+            "image_file": "/hexagrams/35.bin",
+            "character": "䷢",
+            "phrase": "Fire over Earth - Advancement through alignment"
+        },
+        {
+            "id": 36,
+            "name": "Darkening of the Light",
+            "image_file": "/hexagrams/36.bin",
+            "character": "䷣",
+            "phrase": "Earth over Fire - Hardship demands inner strength"
+        },
+        {
+            "id": 37,
+            "name": "The Family",
+            "image_file": "/hexagrams/37.bin",
+            "character": "䷤",
+            "phrase": "Wind over Fire - Order through proper relationships"
+        },
+        {
+            "id": 38,
+            "name": "Opposition",
+            "image_file": "/hexagrams/38.bin",
+            "character": "䷥",
+            "phrase": "Fire over Lake - Differences can coexist harmoniously"
+        },
+        {
+            "id": 39,
+            "name": "Obstruction",
+            "image_file": "/hexagrams/39.bin",
+            "character": "䷦",
+            "phrase": "Water over Mountain - Obstacles require perseverance"
+        },
+        {
+            "id": 40,
+            "name": "Deliverance",
+            "image_file": "/hexagrams/40.bin",
+            "character": "䷧",
+            "phrase": "Thunder over Water - Release brings relief"
+        },
+        {
+            "id": 41,
+            "name": "Decrease",
+            "image_file": "/hexagrams/41.bin",
+            "character": "䷨",
+            "phrase": "Mountain over Lake - Sacrifice produces genuine benefit"
+        },
+        {
+            "id": 42,
+            "name": "Increase",
+            "image_file": "/hexagrams/42.bin",
+            "character": "䷩",
+            "phrase": "Wind over Thunder - Growth through generosity"
+        },
+        {
+            "id": 43,
+            "name": "Breakthrough",
+            "image_file": "/hexagrams/43.bin",
+            "character": "䷪",
+            "phrase": "Heaven over Lake - Resolution through decisive action"
+        },
+        {
+            "id": 44,
+            "name": "Coming to Meet",
+            "image_file": "/hexagrams/44.bin",
+            "character": "䷫",
+            "phrase": "Heaven over Wind - Unexpected encounter brings change"
+        },
+        {
+            "id": 45,
+            "name": "Gathering Together",
+            "image_file": "/hexagrams/45.bin",
+            "character": "䷬",
+            "phrase": "Earth over Lake - Unity through common purpose"
+        },
+        {
+            "id": 46,
+            "name": "Pushing Upward",
+            "image_file": "/hexagrams/46.bin",
+            "character": "䷭",
+            "phrase": "Earth over Wind - Growth through gentle persistence"
+        },
+        {
+            "id": 47,
+            "name": "Oppression",
+            "image_file": "/hexagrams/47.bin",
+            "character": "䷮",
+            "phrase": "Lake over Water - Exhaustion precedes transformation"
+        },
+        {
+            "id": 48,
+            "name": "The Well",
+            "image_file": "/hexagrams/48.bin",
+            "character": "䷯",
+            "phrase": "Water over Wind - Essential substance endures"
+        },
+        {
+            "id": 49,
+            "name": "Revolution",
+            "image_file": "/hexagrams/49.bin",
+            "character": "䷰",
+            "phrase": "Fire over Lake - Radical change becomes necessary"
+        },
+        {
+            "id": 50,
+            "name": "The Cauldron",
+            "image_file": "/hexagrams/50.bin",
+            "character": "䷱",
+            "phrase": "Fire over Wind - Transformation through proper means"
+        },
+        {
+            "id": 51,
+            "name": "The Arousing",
+            "image_file": "/hexagrams/51.bin",
+            "character": "䷲",
+            "phrase": "Thunder over Thunder - Shock awakens consciousness"
+        },
+        {
+            "id": 52,
+            "name": "Keeping Still",
+            "image_file": "/hexagrams/52.bin",
+            "character": "䷳",
+            "phrase": "Mountain over Mountain - Stillness reveals clarity"
+        },
+        {
+            "id": 53,
+            "name": "Development",
+            "image_file": "/hexagrams/53.bin",
+            "character": "䷴",
+            "phrase": "Wind over Mountain - Gradual progress succeeds"
+        },
+        {
+            "id": 54,
+            "name": "The Marrying Maiden",
+            "image_file": "/hexagrams/54.bin",
+            "character": "䷵",
+            "phrase": "Thunder over Lake - Submission within proper bounds"
+        },
+        {
+            "id": 55,
+            "name": "Abundance",
+            "image_file": "/hexagrams/55.bin",
+            "character": "䷶",
+            "phrase": "Fire over Thunder - Peak power attracts attention"
+        },
+        {
+            "id": 56,
+            "name": "The Wanderer",
+            "image_file": "/hexagrams/56.bin",
+            "character": "䷷",
+            "phrase": "Mountain over Fire - Traveling brings learning"
+        },
+        {
+            "id": 57,
+            "name": "The Gentle",
+            "image_file": "/hexagrams/57.bin",
+            "character": "䷸",
+            "phrase": "Wind over Wind - Penetration through gentleness"
+        },
+        {
+            "id": 58,
+            "name": "The Joyous",
+            "image_file": "/hexagrams/58.bin",
+            "character": "䷹",
+            "phrase": "Lake over Lake - Joy doubles through sharing"
+        },
+        {
+            "id": 59,
+            "name": "Dissolution",
+            "image_file": "/hexagrams/59.bin",
+            "character": "䷺",
+            "phrase": "Water over Wind - Barriers dissolve naturally"
+        },
+        {
+            "id": 60,
+            "name": "Limitation",
+            "image_file": "/hexagrams/60.bin",
+            "character": "䷻",
+            "phrase": "Lake over Water - Boundaries create structure"
+        },
+        {
+            "id": 61,
+            "name": "Inner Truth",
+            "image_file": "/hexagrams/61.bin",
+            "character": "䷼",
+            "phrase": "Wind over Lake - Sincerity touches hearts"
+        },
+        {
+            "id": 62,
+            "name": "Preponderance of the Small",
+            "image_file": "/hexagrams/62.bin",
+            "character": "䷽",
+            "phrase": "Thunder over Mountain - Small acts multiply"
+        },
+        {
+            "id": 63,
+            "name": "After Completion",
+            "image_file": "/hexagrams/63.bin",
+            "character": "䷾",
+            "phrase": "Water over Fire - Success requires vigilance"
+        },
+        {
+            "id": 64,
+            "name": "Before Completion",
+            "image_file": "/hexagrams/64.bin",
+            "character": "䷿",
+            "phrase": "Fire over Water - New beginning emerges"
+        }
+    ]
+}
