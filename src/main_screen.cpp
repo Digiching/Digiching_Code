@@ -1,7 +1,10 @@
 // MPU Libraries
-#include <Adafruit_LSM6DSOX.h>
+#include "HardwareSerial.h"
 
-#include <MadgwickAHRS.h>
+#include "WString.h"
+#include "esp32-hal.h"
+
+#include <Adafruit_LSM6DSOX.h>
 
 // Amp Libraries
 //#include <SimpleMAX98357A.h>
@@ -55,7 +58,9 @@ TFT_eSPI tft = TFT_eSPI();
 TFT_eSprite spr = TFT_eSprite( & tft);
 ESP32AnalogRead mic;
 Adafruit_LSM6DSOX sox;
-Madgwick filter;
+
+int shakeyshake = 6; // Counter for how many lines have been drawn, starts at 7 to indicate a full hexagram (6 lines) and trigger a reset on the first shake/blow
+String trueLines = ""; // Default to Hexagram 1, The Creative
 //SimpleMAX98357A player;
 
 uint16_t imageBuffer[IMAGE_WIDTH * IMAGE_HEIGHT];
@@ -92,7 +97,7 @@ bool loadRgb565Bin(const char * path, uint16_t * buffer, size_t pixelCount) {
     return true;
 }
 
-bool getHexagramById(Stream & input, int wantedId, Hexagram & out) {
+bool getHexagramById(Stream & input, String wantedLines, Hexagram & out) {
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, input);
 
@@ -104,8 +109,9 @@ bool getHexagramById(Stream & input, int wantedId, Hexagram & out) {
 
     for (JsonObject hexagram: doc["hexagrams"].as < JsonArray > ()) {
         int id = hexagram["id"] | -1;
+        String lines = hexagram["lines"].as<String>();
 
-        if (id == wantedId) {
+        if (lines == wantedLines) {
             out.id = id;
             out.name = hexagram["name"].as < String > ();
             out.character = hexagram["character"].as < String > ();
@@ -126,6 +132,7 @@ void printHexagram(Hexagram & hexy, uint16_t image[], TFT_eSprite spritz) {
     spritz.setCursor(0, 0);
 
     spritz.setTextDatum(TC_DATUM);
+    spritz.setTextWrap(true);
     spritz.drawString(hexy.name, tft.width() / 2, 0);
 
     spritz.setSwapBytes(true);
@@ -146,9 +153,7 @@ void printHexagram(Hexagram & hexy, uint16_t image[], TFT_eSprite spritz) {
 void setup(void) {
     // Initialise Serial for debugging
     Serial.begin(9600);
-    if (!Serial) {
-        delay(10);
-    }
+    delay(2000); // Wait for Serial to initialize
     Serial.println("Digiching - Main Screen");
 
     // Initialise Audio Amp
@@ -156,9 +161,6 @@ void setup(void) {
     //    Serial.println("Player init failed");
     //    return;
     //}
-
-    // Initialise Madgwick Filter
-    filter.begin(104.00);
 
     // Initialise MPU Sensor
     if (!sox.begin_SPI(LSM_CS, LSM_SCK, LSM_MISO, LSM_MOSI)) {
@@ -299,6 +301,20 @@ void setup(void) {
     tft.fillScreen(TFT_BLACK);
     Serial.println("Initialised TFT Display");
 
+    spr.fillScreen(TFT_BLACK);
+    spr.setTextSize(1);
+    spr.setTextColor(TFT_WHITE);
+    spr.setCursor(0, 0);
+
+    spr.fillRect(0, 0, 128, 128, TFT_GOLD);
+    spr.fillRect(4, 4, 120, 120, TFT_BLACK);
+    
+    spr.setTextDatum(TC_DATUM);
+    spr.setTextSize(2);
+    spr.drawString("Digiching", tft.width() / 2, 30);
+    spr.setTextSize(1);
+    spr.drawString("Shake or Blow", tft.width() / 2, 60);
+    spr.pushSprite(0, 0);
     // LittleFS Setup
 
     // Mount LittleFS before opening any files
@@ -307,28 +323,10 @@ void setup(void) {
         return;
     }
 
-    // Create and open a file for writing
 
-
-    // ArduinoJson Setup
-
-    /*JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, file);
-
-    if (!error) {
-        int id = doc["id"];
-        const char * name = doc["name"];
-        const char * character = doc["character"];
-        const char * phrase = doc["phrase"];
-
-        JsonArray data = doc["data"];
-    } else {
-        Serial.println("Failed to parse JSON");
-    }*/
 
     Serial.println("Done Initialisation");
     delay(50);
-    // 
 }
 
 void loop() {
@@ -346,112 +344,162 @@ void loop() {
         sox.readAcceleration(xAcc, yAcc, zAcc);
         sox.readGyroscope(xGyro, yGyro, zGyro);
 
-        // update the filter, which computes orientation:
-        filter.updateIMU(xGyro, yGyro, zGyro, xAcc, yAcc, zAcc);
+        bool Shaken = abs(xGyro) > 400.0 || abs(yGyro) > 400.0 || abs(zGyro) > 400.0;
+        bool Blown = mic.readVoltage() > 0.7 && mic.readVoltage() < 2; // Adjust threshold as needed
+        bool HeavyBlow = mic.readVoltage() >= 2; // Adjust threshold as needed
 
-        // print the heading, pitch and roll
-        roll = filter.getRoll();
-        pitch = filter.getPitch();
-        heading = filter.getYaw();
+        if (Shaken || Blown || HeavyBlow) {
+            // Handle shake event
+            if (Shaken) {
+                Serial.println("Shake Detected, Gyro Data: " + String(xGyro) + ", " + String(yGyro) + ", " + String(
+                    zGyro));
+            } else if (Blown) {
+                Serial.println("Blow Detected, Mic Voltage: " + String(mic.readVoltage()));
+            } else if (HeavyBlow) {
+                Serial.println("Heavy Blow Detected, Mic Voltage: " + String(mic.readVoltage()));
+            }
 
-        uint16_t colory = TFT_RED;
+            bool split = random(0, 2) == 1; // Randomly decide to split the screen or not
+            bool draw = false; // Set to true if you want to draw the rectangles, false to just print the debug info
 
-        if (abs(xGyro) > 400.0 || abs(yGyro) > 400.0 || abs(zGyro) > 400.0) {
-            colory = TFT_GREEN;
-        }
 
-        spr.fillScreen(TFT_BLACK);
-        spr.setTextSize(1);
-        spr.setTextColor(TFT_WHITE);
-        spr.setCursor(0, 0);
+            if (split) {
+                trueLines += "0"; // Add a broken line
+                Serial.println("Screen will be split.");
+            } else {
+                trueLines += "1"; // Add a solid line
+                Serial.println("Screen will not be split.");
+            }
 
-        spr.setTextColor(colory);
-        spr.println("Accelerometer - m/s^2");
-        spr.setTextColor(TFT_WHITE);
-        spr.println("");
-        spr.print(xAcc, 1);
-        spr.print(", ");
-        spr.print(yAcc, 1);
-        spr.print(", ");
-        spr.print(zAcc, 1);
-        spr.println("");
-        spr.println("");
+            if (!draw && shakeyshake >= 6) {
+                Serial.println("Hexagram complete, resetting screen.");
+                spr.fillScreen(TFT_BLACK);
+            }
 
-        spr.println("");
-        spr.println("");
+            int y;
 
-        spr.setTextColor(colory);
-        spr.println("Gyroscope - rps");
-        spr.setTextColor(TFT_WHITE);
-        spr.println("");
-        spr.print(xGyro, 1);
-        spr.print(", ");
-        spr.print(yGyro, 1);
-        spr.print(", ");
-        spr.print(zGyro, 1);
-        spr.println("");
-        spr.println("");
+            switch (shakeyshake) {
+                case 0:
+                    y = 10;
+                    shakeyshake++;
+                    draw = true;
+                    break;
+                case 1:
+                    y = 30;
+                    shakeyshake++;
+                    draw = true;
+                    break;
+                case 2:
+                    y = 50;
+                    shakeyshake++;
+                    draw = true;
+                    break;
+                case 3:
+                    y = 70;
+                    shakeyshake++;
+                    draw = true;
+                    break;
+                case 4:
+                    y = 90;
+                    shakeyshake++;
+                    draw = true;
+                    break;
+                case 5:
+                    y = 110;
+                    shakeyshake++;
+                    draw = true;
+                    break;
+                case 6:
+                    y = 0;
+                    shakeyshake = 0;
+                    trueLines = ""; // Reset for next hexagram
+                    draw = false;
+                    break;
+            }
 
-        spr.println("");
-        spr.println("");
+            Serial.println("Drawing rectangle at y: " + String(y) + ", split: " + String(split));
+            Serial.println("Current trueLines: " + trueLines);
 
-        spr.setTextColor(colory);
-        spr.println("Roll, Pitch, Heading");
-        spr.setTextColor(TFT_WHITE);
-        spr.println("");
-        spr.print(roll, 1);
-        spr.print(", ");
-        spr.print(pitch, 1);
-        spr.print(", ");
-        spr.print(heading, 1);
+            if (draw) {
+                switch (split) {
+                    case false:
+                        spr.drawRect(12, y, 100, 10, TFT_WHITE);
+                        break;
+                    case true:
+                        spr.drawRect(12, y, 40, 10, TFT_WHITE);
+                        spr.drawRect(72, y, 40, 10, TFT_WHITE);
+                        break;
+                }
+            } else {
+                Serial.println("Hexagram complete, resetting screen.");
+                spr.fillScreen(TFT_BLACK);
+            }
+            
+            if (trueLines.length() == 6) {
+                Serial.println("Hexagram complete with lines: " + trueLines);
+                Hexagram hx;
+                file = LittleFS.open("/hexagrams.json", "r");
 
-        spr.pushSprite(0, 0);
-        delay(50);
-    }
+                if (!file) {
+                    Serial.println("Failed to open file");
+                    return;
+                }
 
-    //if (Serial.available() > 0) {
-    //Serial.print("Enter ID: ");
-    //String command = Serial.readString();
-    //int DasID = command.toInt();
-    //int DasID = 1;
+                if (!getHexagramById(file, trueLines, hx)) {
+                    Serial.println("Hexagram not found");
+                    file.close();
+                    return;
+                }
 
-    /*if (accel.acceleration.x > 2.0) {
-        //Serial.println("X Acceleration: " + String(sox.);
-        DasID = 4;
+                Serial.println("Hexagram found: " + hx.name);
 
-        Serial.println("Successful Shake Detected, Loading Hexagram...");
+                file.close();
 
-        Hexagram hx;
-        file = LittleFS.open("/hexagrams.json", "r");
+                delay(3000); // Pause before loading the hexagram image
 
-        if (!file) {
-            Serial.println("Failed to open file");
-            return;
-        }
+                if (!loadRgb565Bin(hx.image_file.c_str(), imageBuffer, IMAGE_WIDTH * IMAGE_HEIGHT)) {
+                    Serial.println("Failed to load image data");
+                    return;
+                }
 
-        if (!getHexagramById(file, DasID, hx)) {
-            Serial.println("Hexagram not found");
+                printHexagram(hx, imageBuffer, spr);
+            }
+
+            spr.pushSprite(0, 0);
+            delay(1000); // Add a delay to prevent multiple triggers in quick succession
+
+            /*Serial.println("Loading Hexagram...");
+
+            int DasID = random(1, 65); // Generate a random ID between 1 and 64
+            Hexagram hx;
+            file = LittleFS.open("/hexagrams.json", "r");
+
+            if (!file) {
+                Serial.println("Failed to open file");
+                return;
+            }
+
+            if (!getHexagramById(file, DasID, hx)) {
+                Serial.println("Hexagram not found");
+                file.close();
+                return;
+            }
+
             file.close();
-            return;
+
+            if (!loadRgb565Bin(hx.image_file.c_str(), imageBuffer, IMAGE_WIDTH * IMAGE_HEIGHT)) {
+                Serial.println("Failed to load image data");
+                return;
+            }
+
+            printHexagram(hx, imageBuffer, spr);
+
+            spr.pushSprite(0, 0);
+
+            file = fs::File(); // Clear File Data
+            delay(2000);*/
         }
 
-        file.close();
-
-        if (!loadRgb565Bin(hx.image_file.c_str(), imageBuffer, IMAGE_WIDTH * IMAGE_HEIGHT)) {
-            Serial.println("Failed to load image data");
-            return;
-        }
-
-        printHexagram(hx, imageBuffer, spr);
-
-        spr.pushSprite(0, 0);
-
-        file = fs::File(); // Clear File Data
-        delay(2000);
-    } else {
-        Serial.println("No Shake Detected, Accelerometer Data: " + String(accel.acceleration.x));
         delay(50);
     }
-
-    //Serial.println("You entered: " + command);*/
 }
