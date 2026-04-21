@@ -1,18 +1,21 @@
 // MPU Libraries
-#include <Adafruit_MPU6050.h>
-#include <Adafruit_Sensor.h>
+#include <Adafruit_LSM6DSOX.h>
 
 // Display Libraries
 #include <TFT_eSPI.h>
 
 // JSON Libraries
 #include <FS.h>
+
 #include <LittleFS.h>
+
 #include <ArduinoJson.h>
 
 // General Libraries
 #include <SPI.h>
+
 #include <pgmspace.h>
+
 #include <ESP32AnalogRead.h>
 
 // Screen dimensions
@@ -34,13 +37,17 @@
 #define MIC_PIN 4
 
 // Define MPU Pins
-
+#define LSM_CS 15
+// For software-SPI mode we need SCK/MOSI/MISO pins
+#define LSM_SCK 18 // SCL Pin
+#define LSM_MISO 17 // DO Pin
+#define LSM_MOSI 16 // SDA Pin
 
 // Define Things
 TFT_eSPI tft = TFT_eSPI();
 TFT_eSprite spr = TFT_eSprite( & tft);
 ESP32AnalogRead mic;
-Adafruit_MPU6050 mpu = Adafruit_MPU6050();
+Adafruit_LSM6DSOX sox;
 
 uint16_t imageBuffer[IMAGE_WIDTH * IMAGE_HEIGHT];
 fs::File file;
@@ -106,80 +113,6 @@ bool getHexagramById(Stream & input, int wantedId, Hexagram & out) {
     return false;
 }
 
-/*
-void generateHexagramArray(Stream & input) {
-    JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, input);
-
-    if (error) {
-        Serial.print("deserializeJson() failed: ");
-        Serial.println(error.c_str());
-    }
-
-
-
-    for (JsonObject hexagram: doc["hexagrams"].as < JsonArray > ()) {
-        size_t M = doc["hexagrams"].size();
-        for (size_t i = 0; i < M; i++) {
-            hexagrams[i].id = hexagram["id"];
-            Serial.print("ID: ");
-            Serial.println((int) hexagram["id"]);
-
-            hexagrams[i].name = hexagram["name"];
-            Serial.print("Name: ");
-            Serial.println((const char * ) hexagram["name"]);
-
-            hexagrams[i].character = hexagram["character"];
-            Serial.print("Character: ");
-            Serial.println((const char * ) hexagram["character"]);
-
-            hexagrams[i].phrase = hexagram["phrase"];
-            Serial.print("Phrase: ");
-            Serial.println((const char * ) hexagram["phrase"]);
-
-            size_t N = hexagram["image"].size();
-
-            unsigned short values[N] PROGMEM;
-            for (size_t j = 0; j < N; j++)
-                hexagrams[i].image[j] = hexagram["image"][j];
-        }
-    }
-}*/
-
-/*
-void getHexagram(int hexNum) {
-    // This function will read the hexagram data from the JSON file and return the corresponding image data
-    // For now, we will just return a placeholder image
-    // In the future, we can implement the actual reading of the JSON file and returning the correct image data
-
-    fs::File file = LittleFS.open("/hexagrams.json", "r");
-    if (!file) {
-        Serial.println("Failed to open file");
-        return;
-    }
-
-    JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, file);
-
-    if (!error) {
-        int id = doc["id"];
-        const char * name = doc["name"];
-        const char * character = doc["character"];
-        const char * phrase = doc["phrase"];
-
-        size_t N = doc["image"].size();
-
-        unsigned short values[N] PROGMEM;
-        for (size_t i = 0; i < N; i++)
-            values[i] = doc["image"][i];
-    } else {
-        Serial.println("Failed to parse JSON");
-    }
-
-
-}
-    */
-
 void printHexagram(Hexagram & hexy, uint16_t image[], TFT_eSprite spritz) {
 
     spritz.fillScreen(TFT_BLACK);
@@ -192,7 +125,6 @@ void printHexagram(Hexagram & hexy, uint16_t image[], TFT_eSprite spritz) {
 
     spritz.setSwapBytes(true);
     spritz.pushImage(14, 8, IMAGE_WIDTH, IMAGE_HEIGHT, image);
-    //spritz.invertDisplay(true);
 
     spritz.setTextWrap(true);
     spritz.setTextDatum(TL_DATUM);
@@ -209,12 +141,137 @@ void printHexagram(Hexagram & hexy, uint16_t image[], TFT_eSprite spritz) {
 void setup(void) {
     // Initialise Serial for debugging
     Serial.begin(9600);
-    delay(200);
+    if (!Serial)
+    {  
+        delay(10);
+    }
     Serial.print("Digiching - Main Screen");
 
+    
+
     // Initialise MPU Sensor
-    mpu.begin();
-    Serial.println("MPU6050 Found!");
+    if (!sox.begin_SPI(LSM_CS, LSM_SCK, LSM_MISO, LSM_MOSI)) {
+        Serial.println("Failed to find LSM6DSOX chip");
+        while (1) {
+            delay(10);
+        }
+    }
+    Serial.println("LSM6DSOX Found!");
+
+    // sox.setAccelRange(LSM6DS_ACCEL_RANGE_2_G);
+    Serial.print("Accelerometer range set to: ");
+    switch (sox.getAccelRange()) {
+        case LSM6DS_ACCEL_RANGE_2_G:
+            Serial.println("+-2G");
+            break;
+        case LSM6DS_ACCEL_RANGE_4_G:
+            Serial.println("+-4G");
+            break;
+        case LSM6DS_ACCEL_RANGE_8_G:
+            Serial.println("+-8G");
+            break;
+        case LSM6DS_ACCEL_RANGE_16_G:
+            Serial.println("+-16G");
+            break;
+    }
+
+    // sox.setGyroRange(LSM6DS_GYRO_RANGE_250_DPS );
+    Serial.print("Gyro range set to: ");
+    switch (sox.getGyroRange()) {
+        case LSM6DS_GYRO_RANGE_125_DPS:
+            Serial.println("125 degrees/s");
+            break;
+        case LSM6DS_GYRO_RANGE_250_DPS:
+            Serial.println("250 degrees/s");
+            break;
+        case LSM6DS_GYRO_RANGE_500_DPS:
+            Serial.println("500 degrees/s");
+            break;
+        case LSM6DS_GYRO_RANGE_1000_DPS:
+            Serial.println("1000 degrees/s");
+            break;
+        case LSM6DS_GYRO_RANGE_2000_DPS:
+            Serial.println("2000 degrees/s");
+            break;
+        case ISM330DHCX_GYRO_RANGE_4000_DPS:
+            break; // unsupported range for the DSOX
+    }
+
+    // sox.setAccelDataRate(LSM6DS_RATE_12_5_HZ);
+    Serial.print("Accelerometer data rate set to: ");
+    switch (sox.getAccelDataRate()) {
+        case LSM6DS_RATE_SHUTDOWN:
+            Serial.println("0 Hz");
+            break;
+        case LSM6DS_RATE_12_5_HZ:
+            Serial.println("12.5 Hz");
+            break;
+        case LSM6DS_RATE_26_HZ:
+            Serial.println("26 Hz");
+            break;
+        case LSM6DS_RATE_52_HZ:
+            Serial.println("52 Hz");
+            break;
+        case LSM6DS_RATE_104_HZ:
+            Serial.println("104 Hz");
+            break;
+        case LSM6DS_RATE_208_HZ:
+            Serial.println("208 Hz");
+            break;
+        case LSM6DS_RATE_416_HZ:
+            Serial.println("416 Hz");
+            break;
+        case LSM6DS_RATE_833_HZ:
+            Serial.println("833 Hz");
+            break;
+        case LSM6DS_RATE_1_66K_HZ:
+            Serial.println("1.66 KHz");
+            break;
+        case LSM6DS_RATE_3_33K_HZ:
+            Serial.println("3.33 KHz");
+            break;
+        case LSM6DS_RATE_6_66K_HZ:
+            Serial.println("6.66 KHz");
+            break;
+    }
+
+    // sox.setGyroDataRate(LSM6DS_RATE_12_5_HZ);
+    Serial.print("Gyro data rate set to: ");
+    switch (sox.getGyroDataRate()) {
+        case LSM6DS_RATE_SHUTDOWN:
+            Serial.println("0 Hz");
+            break;
+        case LSM6DS_RATE_12_5_HZ:
+            Serial.println("12.5 Hz");
+            break;
+        case LSM6DS_RATE_26_HZ:
+            Serial.println("26 Hz");
+            break;
+        case LSM6DS_RATE_52_HZ:
+            Serial.println("52 Hz");
+            break;
+        case LSM6DS_RATE_104_HZ:
+            Serial.println("104 Hz");
+            break;
+        case LSM6DS_RATE_208_HZ:
+            Serial.println("208 Hz");
+            break;
+        case LSM6DS_RATE_416_HZ:
+            Serial.println("416 Hz");
+            break;
+        case LSM6DS_RATE_833_HZ:
+            Serial.println("833 Hz");
+            break;
+        case LSM6DS_RATE_1_66K_HZ:
+            Serial.println("1.66 KHz");
+            break;
+        case LSM6DS_RATE_3_33K_HZ:
+            Serial.println("3.33 KHz");
+            break;
+        case LSM6DS_RATE_6_66K_HZ:
+            Serial.println("6.66 KHz");
+            break;
+    }
 
     // Initialise Microphone
     mic.attach(MIC_PIN);
@@ -264,8 +321,40 @@ void setup(void) {
 }
 
 void loop() {
-    //printHexagram(1);
+    //  /* Get a new normalized sensor event */
+    sensors_event_t accel;
+    sensors_event_t gyro;
+    sensors_event_t temp;
+    sox.getEvent( & accel, & gyro, & temp);
 
+    Serial.print("\t\tTemperature ");
+    Serial.print(temp.temperature);
+    Serial.println(" deg C");
+
+    /* Display the results (acceleration is measured in m/s^2) */
+    Serial.print("\t\tAccel X: ");
+    Serial.print(accel.acceleration.x);
+    Serial.print(" \tY: ");
+    Serial.print(accel.acceleration.y);
+    Serial.print(" \tZ: ");
+    Serial.print(accel.acceleration.z);
+    Serial.println(" m/s^2 ");
+
+    /* Display the results (rotation is measured in rad/s) */
+    Serial.print("\t\tGyro X: ");
+    Serial.print(gyro.gyro.x);
+    Serial.print(" \tY: ");
+    Serial.print(gyro.gyro.y);
+    Serial.print(" \tZ: ");
+    Serial.print(gyro.gyro.z);
+    Serial.println(" radians/s ");
+    Serial.println();
+
+    delay(100);
+
+
+    //printHexagram(1);
+    /*
     if (Serial.available() > 0) {
         Serial.print("Enter ID: ");
         String command = Serial.readString();
@@ -302,7 +391,7 @@ void loop() {
         file = fs::File(); // Clear File Data
     }
 
-    delay(50);
+    delay(50);*/
 
 
     /*sensors_event_t a, g, temp;
