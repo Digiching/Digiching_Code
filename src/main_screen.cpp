@@ -354,31 +354,66 @@ void loop() {
         pitch = filter.getPitch();
         heading = filter.getYaw();
 
-        Serial.print(xAcc);
-        Serial.print(',');
-        Serial.print(yAcc);
-        Serial.print(',');
-        Serial.print(zAcc);
-        Serial.println(',');
-        Serial.print(xGyro);
-        Serial.print(',');
-        Serial.print(yGyro);
-        Serial.print(',');
-        Serial.print(zGyro);
-        Serial.println(',');
+        uint16_t colory = TFT_RED;
 
-        Serial.print(heading);
-        Serial.print(',');
-        Serial.print(pitch);
-        Serial.print(',');
-        Serial.println(roll);
+        if (abs(xGyro) > 400.0 || abs(yGyro) > 400.0 || abs(zGyro) > 400.0) {
+            colory = TFT_GREEN;
+        }
+
+        spr.fillScreen(TFT_BLACK);
+        spr.setTextSize(1);
+        spr.setTextColor(TFT_WHITE);
+        spr.setCursor(0, 0);
+
+        spr.setTextColor(colory);
+        spr.println("Accelerometer - m/s^2");
+        spr.setTextColor(TFT_WHITE);
+        spr.println("");
+        spr.print(xAcc, 1);
+        spr.print(", ");
+        spr.print(yAcc, 1);
+        spr.print(", ");
+        spr.print(zAcc, 1);
+        spr.println("");
+        spr.println("");
+
+        spr.println("");
+        spr.println("");
+
+        spr.setTextColor(colory);
+        spr.println("Gyroscope - rps");
+        spr.setTextColor(TFT_WHITE);
+        spr.println("");
+        spr.print(xGyro, 1);
+        spr.print(", ");
+        spr.print(yGyro, 1);
+        spr.print(", ");
+        spr.print(zGyro, 1);
+        spr.println("");
+        spr.println("");
+
+        spr.println("");
+        spr.println("");
+
+        spr.setTextColor(colory);
+        spr.println("Roll, Pitch, Heading");
+        spr.setTextColor(TFT_WHITE);
+        spr.println("");
+        spr.print(roll, 1);
+        spr.print(", ");
+        spr.print(pitch, 1);
+        spr.print(", ");
+        spr.print(heading, 1);
+
+        spr.pushSprite(0, 0);
+        delay(50);
     }
 
     //if (Serial.available() > 0) {
     //Serial.print("Enter ID: ");
     //String command = Serial.readString();
     //int DasID = command.toInt();
-    int DasID = 1;
+    //int DasID = 1;
 
     /*if (accel.acceleration.x > 2.0) {
         //Serial.println("X Acceleration: " + String(sox.);
