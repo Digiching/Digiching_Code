@@ -1,6 +1,11 @@
 // MPU Libraries
 #include <Adafruit_LSM6DSOX.h>
 
+#include <MadgwickAHRS.h>
+
+// Amp Libraries
+//#include <SimpleMAX98357A.h>
+
 // Display Libraries
 #include <TFT_eSPI.h>
 
@@ -43,11 +48,15 @@
 #define LSM_MISO 17 // DO Pin
 #define LSM_MOSI 16 // SDA Pin
 
+// Define Amp Pins
+
 // Define Things
 TFT_eSPI tft = TFT_eSPI();
 TFT_eSprite spr = TFT_eSprite( & tft);
 ESP32AnalogRead mic;
 Adafruit_LSM6DSOX sox;
+Madgwick filter;
+//SimpleMAX98357A player;
 
 uint16_t imageBuffer[IMAGE_WIDTH * IMAGE_HEIGHT];
 fs::File file;
@@ -98,14 +107,10 @@ bool getHexagramById(Stream & input, int wantedId, Hexagram & out) {
 
         if (id == wantedId) {
             out.id = id;
-            out.name = hexagram["name"].as <
-                const char * > ();
-            out.character = hexagram["character"].as <
-                const char * > ();
-            out.image_file = hexagram["image_file"].as <
-                const char * > ();
-            out.phrase = hexagram["phrase"].as <
-                const char * > ();
+            out.name = hexagram["name"].as < String > ();
+            out.character = hexagram["character"].as < String > ();
+            out.image_file = hexagram["image_file"].as < String > ();
+            out.phrase = hexagram["phrase"].as < String > ();
             return true;
         }
     }
@@ -141,13 +146,19 @@ void printHexagram(Hexagram & hexy, uint16_t image[], TFT_eSprite spritz) {
 void setup(void) {
     // Initialise Serial for debugging
     Serial.begin(9600);
-    if (!Serial)
-    {  
+    if (!Serial) {
         delay(10);
     }
-    Serial.print("Digiching - Main Screen");
+    Serial.println("Digiching - Main Screen");
 
-    
+    // Initialise Audio Amp
+    //if (!player.begin  ) {
+    //    Serial.println("Player init failed");
+    //    return;
+    //}
+
+    // Initialise Madgwick Filter
+    filter.begin(104.00);
 
     // Initialise MPU Sensor
     if (!sox.begin_SPI(LSM_CS, LSM_SCK, LSM_MISO, LSM_MOSI)) {
@@ -321,46 +332,59 @@ void setup(void) {
 }
 
 void loop() {
-    //  /* Get a new normalized sensor event */
-    sensors_event_t accel;
-    sensors_event_t gyro;
-    sensors_event_t temp;
-    sox.getEvent( & accel, & gyro, & temp);
+    //Get a new normalized sensor event 
+    // values for acceleration and rotation:
+    float xAcc, yAcc, zAcc;
+    float xGyro, yGyro, zGyro;
 
-    Serial.print("\t\tTemperature ");
-    Serial.print(temp.temperature);
-    Serial.println(" deg C");
+    // values for orientation:
+    float roll, pitch, heading;
+    // check if the IMU is ready to read:
+    if (sox.accelerationAvailable() &&
+        sox.gyroscopeAvailable()) {
+        // read accelerometer &and gyrometer:
+        sox.readAcceleration(xAcc, yAcc, zAcc);
+        sox.readGyroscope(xGyro, yGyro, zGyro);
 
-    /* Display the results (acceleration is measured in m/s^2) */
-    Serial.print("\t\tAccel X: ");
-    Serial.print(accel.acceleration.x);
-    Serial.print(" \tY: ");
-    Serial.print(accel.acceleration.y);
-    Serial.print(" \tZ: ");
-    Serial.print(accel.acceleration.z);
-    Serial.println(" m/s^2 ");
+        // update the filter, which computes orientation:
+        filter.updateIMU(xGyro, yGyro, zGyro, xAcc, yAcc, zAcc);
 
-    /* Display the results (rotation is measured in rad/s) */
-    Serial.print("\t\tGyro X: ");
-    Serial.print(gyro.gyro.x);
-    Serial.print(" \tY: ");
-    Serial.print(gyro.gyro.y);
-    Serial.print(" \tZ: ");
-    Serial.print(gyro.gyro.z);
-    Serial.println(" radians/s ");
-    Serial.println();
+        // print the heading, pitch and roll
+        roll = filter.getRoll();
+        pitch = filter.getPitch();
+        heading = filter.getYaw();
 
-    delay(100);
+        Serial.print(xAcc);
+        Serial.print(',');
+        Serial.print(yAcc);
+        Serial.print(',');
+        Serial.print(zAcc);
+        Serial.println(',');
+        Serial.print(xGyro);
+        Serial.print(',');
+        Serial.print(yGyro);
+        Serial.print(',');
+        Serial.print(zGyro);
+        Serial.println(',');
 
+        Serial.print(heading);
+        Serial.print(',');
+        Serial.print(pitch);
+        Serial.print(',');
+        Serial.println(roll);
+    }
 
-    //printHexagram(1);
-    /*
-    if (Serial.available() > 0) {
-        Serial.print("Enter ID: ");
-        String command = Serial.readString();
-        int DasID = command.toInt();
+    //if (Serial.available() > 0) {
+    //Serial.print("Enter ID: ");
+    //String command = Serial.readString();
+    //int DasID = command.toInt();
+    int DasID = 1;
 
-        Serial.println("You entered: " + command);
+    /*if (accel.acceleration.x > 2.0) {
+        //Serial.println("X Acceleration: " + String(sox.);
+        DasID = 4;
+
+        Serial.println("Successful Shake Detected, Loading Hexagram...");
 
         Hexagram hx;
         file = LittleFS.open("/hexagrams.json", "r");
@@ -387,53 +411,12 @@ void loop() {
 
         spr.pushSprite(0, 0);
 
-        hx = Hexagram(); // Clear Hexagram Data
         file = fs::File(); // Clear File Data
+        delay(2000);
+    } else {
+        Serial.println("No Shake Detected, Accelerometer Data: " + String(accel.acceleration.x));
+        delay(50);
     }
 
-    delay(50);*/
-
-
-    /*sensors_event_t a, g, temp;
-    mpu.getEvent(&a, &g, &temp);
-
-    
-
-    spr.setTextColor(TFT_RED);
-    spr.println("Accelerometer - m/s^2");
-    spr.setTextColor(TFT_WHITE);
-    spr.println("");
-    spr.print(a.acceleration.x, 1);
-    spr.print(", ");
-    spr.print(a.acceleration.y, 1);
-    spr.print(", ");
-    spr.print(a.acceleration.x, 1);
-    spr.println("");
-    spr.println("");
-
-    spr.println("");
-    spr.println("");
-
-    spr.setTextColor(TFT_RED);
-    spr.println("Gyroscope - rps");
-    spr.setTextColor(TFT_WHITE);
-    spr.println("");
-    spr.print(g.gyro.x, 1);
-    spr.print(", ");
-    spr.print(g.gyro.y, 1);
-    spr.print(", ");
-    spr.print(g.gyro.z, 1);
-    spr.println("");
-    spr.println("");
-
-    // Serial.println("Voltage = "+String(mic.readVoltage()));
-
-    spr.println("");
-    spr.println("");
-    spr.setTextColor(TFT_RED);
-    spr.println("Voltage - Volts");
-    spr.setTextColor(TFT_WHITE);
-    spr.println("");
-    spr.println(String(mic.readVoltage()));*/
-
+    //Serial.println("You entered: " + command);*/
 }
