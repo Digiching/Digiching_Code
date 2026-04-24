@@ -1,29 +1,23 @@
 // MPU Libraries
 #include "HardwareSerial.h"
-
 #include "WString.h"
 #include "esp32-hal.h"
-
 #include <Adafruit_LSM6DSOX.h>
 
 // Amp Libraries
-//#include <SimpleMAX98357A.h>
+
 
 // Display Libraries
 #include <TFT_eSPI.h>
 
 // JSON Libraries
 #include <FS.h>
-
 #include <LittleFS.h>
-
 #include <ArduinoJson.h>
 
 // General Libraries
 #include <SPI.h>
-
 #include <pgmspace.h>
-
 #include <ESP32AnalogRead.h>
 
 // Screen dimensions
@@ -36,33 +30,44 @@
 
 // Define Display Pins
 #define SCLK_PIN 12
-#define MOSI_PIN 11
-#define DC_PIN 13
-#define CS_PIN 10
-#define RST_PIN 14
+#define MOSI_PIN 20
+#define DC_PIN 21
+#define CS_PIN 19
+#define RST_PIN 22
 
 // Define Microphone Pin
 #define MIC_PIN 4
 
 // Define MPU Pins
-#define LSM_CS 15
+#define LSM_CS 3
 // For software-SPI mode we need SCK/MOSI/MISO pins
-#define LSM_SCK 18 // SCL Pin
-#define LSM_MISO 17 // DO Pin
-#define LSM_MOSI 16 // SDA Pin
+#define LSM_SCK 10 // SCL Pin
+#define LSM_MISO 9 // DO Pin
+#define LSM_MOSI 46 // SDA Pin
 
 // Define Amp Pins
+#define AMP_I2S_DOUT 47
+#define AMP_I2S_BCLK 48
+#define AMP_I2S_LRC 45
 
 // Define Things
+// Create TFT_eSPI object with the defined pins
 TFT_eSPI tft = TFT_eSPI();
 TFT_eSprite spr = TFT_eSprite( & tft);
+
+// Create objects for MPU, Microphone, and Audio
 ESP32AnalogRead mic;
 Adafruit_LSM6DSOX sox;
 
-int shakeyshake = 6; // Counter for how many lines have been drawn, starts at 7 to indicate a full hexagram (6 lines) and trigger a reset on the first shake/blow
+int shakeyshake =
+    6; // Counter for how many lines have been drawn, starts at 7 to indicate a full hexagram (6 lines) and trigger a reset on the first shake/blow
 String trueLines = ""; // Default to Hexagram 1, The Creative
-//SimpleMAX98357A player;
 
+// Audio Setup
+//ESP32I2SAudio audio(AMP_I2S_BCLK, AMP_I2S_LRC, AMP_I2S_DOUT);
+//ROMBackgroundAudioWAV BMP(audio);
+
+// Image Buffer
 uint16_t imageBuffer[IMAGE_WIDTH * IMAGE_HEIGHT];
 fs::File file;
 
@@ -76,6 +81,7 @@ class Hexagram {
     String phrase;
 };
 
+// Function to load RGB565 binary image data from LittleFS into a buffer
 bool loadRgb565Bin(const char * path, uint16_t * buffer, size_t pixelCount) {
     fs::File file = LittleFS.open(path, "r");
     if (!file) {
@@ -97,6 +103,7 @@ bool loadRgb565Bin(const char * path, uint16_t * buffer, size_t pixelCount) {
     return true;
 }
 
+// Function to get Hexagram data from JSON file based on the lines pattern
 bool getHexagramById(Stream & input, String wantedLines, Hexagram & out) {
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, input);
@@ -109,7 +116,7 @@ bool getHexagramById(Stream & input, String wantedLines, Hexagram & out) {
 
     for (JsonObject hexagram: doc["hexagrams"].as < JsonArray > ()) {
         int id = hexagram["id"] | -1;
-        String lines = hexagram["lines"].as<String>();
+        String lines = hexagram["lines"].as < String > ();
 
         if (lines == wantedLines) {
             out.id = id;
@@ -124,6 +131,7 @@ bool getHexagramById(Stream & input, String wantedLines, Hexagram & out) {
     return false;
 }
 
+// Function to display the Hexagram on the screen
 void printHexagram(Hexagram & hexy, uint16_t image[], TFT_eSprite spritz) {
 
     spritz.fillScreen(TFT_BLACK);
@@ -149,7 +157,6 @@ void printHexagram(Hexagram & hexy, uint16_t image[], TFT_eSprite spritz) {
     //spr.drawString("of the universe.", 0, 120);
 }
 
-
 void setup(void) {
     // Initialise Serial for debugging
     Serial.begin(9600);
@@ -157,10 +164,7 @@ void setup(void) {
     Serial.println("Digiching - Main Screen");
 
     // Initialise Audio Amp
-    //if (!player.begin  ) {
-    //    Serial.println("Player init failed");
-    //    return;
-    //}
+//    BMP.begin();
 
     // Initialise MPU Sensor
     if (!sox.begin_SPI(LSM_CS, LSM_SCK, LSM_MISO, LSM_MOSI)) {
@@ -308,7 +312,7 @@ void setup(void) {
 
     spr.fillRect(0, 0, 128, 128, TFT_GOLD);
     spr.fillRect(4, 4, 120, 120, TFT_BLACK);
-    
+
     spr.setTextDatum(TC_DATUM);
     spr.setTextSize(2);
     spr.drawString("Digiching", tft.width() / 2, 30);
@@ -330,176 +334,155 @@ void setup(void) {
 }
 
 void loop() {
-    //Get a new normalized sensor event 
-    // values for acceleration and rotation:
-    float xAcc, yAcc, zAcc;
-    float xGyro, yGyro, zGyro;
+        //Get a new normalized sensor event 
+        // values for acceleration and rotation:
+        float xAcc, yAcc, zAcc;
+        float xGyro, yGyro, zGyro;
 
-    // values for orientation:
-    float roll, pitch, heading;
-    // check if the IMU is ready to read:
-    if (sox.accelerationAvailable() &&
-        sox.gyroscopeAvailable()) {
-        // read accelerometer &and gyrometer:
-        sox.readAcceleration(xAcc, yAcc, zAcc);
-        sox.readGyroscope(xGyro, yGyro, zGyro);
+        // values for orientation:
+        float roll, pitch, heading;
+        // check if the IMU is ready to read:
+        if (sox.accelerationAvailable() &&
+            sox.gyroscopeAvailable()) {
+            // read accelerometer &and gyrometer:
+            sox.readAcceleration(xAcc, yAcc, zAcc);
+            sox.readGyroscope(xGyro, yGyro, zGyro);
 
-        bool Shaken = abs(xGyro) > 400.0 || abs(yGyro) > 400.0 || abs(zGyro) > 400.0;
-        bool Blown = mic.readVoltage() > 0.7 && mic.readVoltage() < 2; // Adjust threshold as needed
-        bool HeavyBlow = mic.readVoltage() >= 2; // Adjust threshold as needed
+            bool Shaken = abs(xGyro) > 400.0 || abs(yGyro) > 400.0 || abs(zGyro) > 400.0;
+            bool Blown = mic.readVoltage() > 0.7 && mic.readVoltage() < 2; // Adjust threshold as needed
+            bool HeavyBlow = mic.readVoltage() >= 2; // Adjust threshold as needed
 
-        if (Shaken || Blown || HeavyBlow) {
-            // Handle shake event
-            if (Shaken) {
-                Serial.println("Shake Detected, Gyro Data: " + String(xGyro) + ", " + String(yGyro) + ", " + String(
-                    zGyro));
-            } else if (Blown) {
-                Serial.println("Blow Detected, Mic Voltage: " + String(mic.readVoltage()));
-            } else if (HeavyBlow) {
-                Serial.println("Heavy Blow Detected, Mic Voltage: " + String(mic.readVoltage()));
-            }
+            if (Shaken || Blown || HeavyBlow) {
+                // Handle shake event
+                if (Shaken) {
+                    Serial.println("Shake Detected, Gyro Data: " + String(xGyro) + ", " + String(yGyro) + ", " + String(
+                        zGyro));
+                } else if (Blown) {
+                    Serial.println("Blow Detected, Mic Voltage: " + String(mic.readVoltage()));
+                } else if (HeavyBlow) {
+                    Serial.println("Heavy Blow Detected, Mic Voltage: " + String(mic.readVoltage()));
+                }
 
-            bool split = random(0, 2) == 1; // Randomly decide to split the screen or not
-            bool draw = false; // Set to true if you want to draw the rectangles, false to just print the debug info
+                bool split = random(0, 2) == 1; // Randomly decide to split the screen or not
+                bool draw = false; // Set to true if you want to draw the rectangles, false to just print the debug info
 
 
-            if (split) {
-                trueLines += "0"; // Add a broken line
-                Serial.println("Screen will be split.");
-            } else {
-                trueLines += "1"; // Add a solid line
-                Serial.println("Screen will not be split.");
-            }
+                if (split) {
+                    trueLines += "0"; // Add a broken line
+                    Serial.println("Screen will be split.");
+                } else {
+                    trueLines += "1"; // Add a solid line
+                    Serial.println("Screen will not be split.");
+                }
 
-            if (!draw && shakeyshake >= 6) {
-                Serial.println("Hexagram complete, resetting screen.");
-                spr.fillScreen(TFT_BLACK);
-            }
+                if (!draw && shakeyshake >= 6) {
+                    Serial.println("Hexagram complete, resetting screen.");
+                    spr.fillScreen(TFT_BLACK);
+                }
 
-            int y;
+                int y;
 
-            switch (shakeyshake) {
-                case 0:
-                    y = 10;
-                    shakeyshake++;
-                    draw = true;
-                    break;
-                case 1:
-                    y = 30;
-                    shakeyshake++;
-                    draw = true;
-                    break;
-                case 2:
-                    y = 50;
-                    shakeyshake++;
-                    draw = true;
-                    break;
-                case 3:
-                    y = 70;
-                    shakeyshake++;
-                    draw = true;
-                    break;
-                case 4:
-                    y = 90;
-                    shakeyshake++;
-                    draw = true;
-                    break;
-                case 5:
-                    y = 110;
-                    shakeyshake++;
-                    draw = true;
-                    break;
-                case 6:
-                    y = 0;
-                    shakeyshake = 0;
-                    trueLines = ""; // Reset for next hexagram
-                    draw = false;
-                    break;
-            }
-
-            Serial.println("Drawing rectangle at y: " + String(y) + ", split: " + String(split));
-            Serial.println("Current trueLines: " + trueLines);
-
-            if (draw) {
-                switch (split) {
-                    case false:
-                        spr.drawRect(12, y, 100, 10, TFT_WHITE);
+                switch (shakeyshake) {
+                    case 0:
+                        y = 10;
+                        shakeyshake++;
+                        draw = true;
                         break;
-                    case true:
-                        spr.drawRect(12, y, 40, 10, TFT_WHITE);
-                        spr.drawRect(72, y, 40, 10, TFT_WHITE);
+                    case 1:
+                        y = 30;
+                        shakeyshake++;
+                        draw = true;
+                        break;
+                    case 2:
+                        y = 50;
+                        shakeyshake++;
+                        draw = true;
+                        break;
+                    case 3:
+                        y = 70;
+                        shakeyshake++;
+                        draw = true;
+                        break;
+                    case 4:
+                        y = 90;
+                        shakeyshake++;
+                        draw = true;
+                        break;
+                    case 5:
+                        y = 110;
+                        shakeyshake++;
+                        draw = true;
+                        break;
+                    case 6:
+                        y = 0;
+                        shakeyshake = 0;
+                        trueLines = ""; // Reset for next hexagram
+                        draw = false;
                         break;
                 }
-            } else {
-                Serial.println("Hexagram complete, resetting screen.");
-                spr.fillScreen(TFT_BLACK);
-            }
-            
-            if (trueLines.length() == 6) {
-                Serial.println("Hexagram complete with lines: " + trueLines);
-                Hexagram hx;
-                file = LittleFS.open("/hexagrams.json", "r");
 
-                if (!file) {
-                    Serial.println("Failed to open file");
-                    return;
+                // Debug prints to verify the correct line is being drawn and the state of trueLines
+                Serial.println("Drawing rectangle at y: " + String(y) + ", split: " + String(split));
+                Serial.println("Current trueLines: " + trueLines);
+
+                if (draw) {
+                    // Draw the line(s) for the current shake/blow
+                    switch (split) {
+                        case false:
+                            // Not split, draw a solid line across the whole screen
+                            spr.drawRect(12, y, 100, 10, TFT_WHITE);
+                            break;
+                        case true:
+                            // Split, draw two rectangles with a gap in the middle
+                            spr.drawRect(12, y, 40, 10, TFT_WHITE);
+                            spr.drawRect(72, y, 40, 10, TFT_WHITE);
+                            break;
+                    }
+                } else {
+                    // Hexagram is complete, reset for the next one
+                    Serial.println("Hexagram complete, resetting screen.");
+                    spr.fillScreen(TFT_BLACK);
                 }
 
-                if (!getHexagramById(file, trueLines, hx)) {
-                    Serial.println("Hexagram not found");
-                    file.close();
-                    return;
+                if (trueLines.length() == 6) {
+                    // Hexagram is complete, look up the corresponding hexagram data and display it
+                    Serial.println("Hexagram complete with lines: " + trueLines);
+                    Hexagram hx;
+                    file = LittleFS.open("/hexagrams.json", "r");
+
+                    // Check if file opened successfully
+                    if (!file) {
+                        Serial.println("Failed to open file");
+                        return;
+                    }
+
+                    // Attempt to find the hexagram based on the lines pattern
+                    if (!getHexagramById(file, trueLines, hx)) {
+                        Serial.println("Hexagram not found");
+                        file.close();
+                        return;
+                    }
+
+                    Serial.println("Hexagram found: " + hx.name); // Debug print to confirm hexagram is found
+
+                    file.close(); // Clear File Data
+
+                    // BMP.flush(); // Stop any existing output, reset for new file
+                    // BMP.write(beepwav, sizeof(beepwav)); // Play the beep sound to indicate hexagram is being loaded
+
+                    delay(3500); // Pause before loading the hexagram image
+
+                    if (!loadRgb565Bin(hx.image_file.c_str(), imageBuffer, IMAGE_WIDTH * IMAGE_HEIGHT)) {
+                        Serial.println("Failed to load image data");
+                        return;
+                    }
+
+                    printHexagram(hx, imageBuffer, spr);
                 }
 
-                Serial.println("Hexagram found: " + hx.name);
+                spr.pushSprite(0, 0);
+                delay(1000); // Add a delay to prevent multiple triggers in quick succession
 
-                file.close();
 
-                delay(3000); // Pause before loading the hexagram image
-
-                if (!loadRgb565Bin(hx.image_file.c_str(), imageBuffer, IMAGE_WIDTH * IMAGE_HEIGHT)) {
-                    Serial.println("Failed to load image data");
-                    return;
-                }
-
-                printHexagram(hx, imageBuffer, spr);
             }
-
-            spr.pushSprite(0, 0);
-            delay(1000); // Add a delay to prevent multiple triggers in quick succession
-
-            /*Serial.println("Loading Hexagram...");
-
-            int DasID = random(1, 65); // Generate a random ID between 1 and 64
-            Hexagram hx;
-            file = LittleFS.open("/hexagrams.json", "r");
-
-            if (!file) {
-                Serial.println("Failed to open file");
-                return;
-            }
-
-            if (!getHexagramById(file, DasID, hx)) {
-                Serial.println("Hexagram not found");
-                file.close();
-                return;
-            }
-
-            file.close();
-
-            if (!loadRgb565Bin(hx.image_file.c_str(), imageBuffer, IMAGE_WIDTH * IMAGE_HEIGHT)) {
-                Serial.println("Failed to load image data");
-                return;
-            }
-
-            printHexagram(hx, imageBuffer, spr);
-
-            spr.pushSprite(0, 0);
-
-            file = fs::File(); // Clear File Data
-            delay(2000);*/
         }
-
-        delay(50);
-    }
-}
