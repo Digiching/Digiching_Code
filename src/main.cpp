@@ -36,26 +36,26 @@
 #define IMAGE_HEIGHT 96
 
 // Define Display Pins
-#define SCLK_PIN 8
-#define MOSI_PIN 12
-#define DC_PIN 13
-#define CS_PIN 11
-#define RST_PIN 14
+#define SCLK_PIN 12
+#define MOSI_PIN 13
+#define CS_PIN 14
+#define DC_PIN 15
+#define RST_PIN 16
 
 // Define Microphone Pin
 #define MIC_PIN 4
 
 // Define MPU Pins
-#define LSM_CS 3
+#define LSM_CS 17
 // For software-SPI mode we need SCK/MOSI/MISO pins
-#define LSM_SCK 10 // SCL Pin
-#define LSM_MISO 9 // DO Pin
-#define LSM_MOSI 46 // SDA Pin
+#define LSM_SCK 18 // SCL Pin
+#define LSM_MISO 21 // DO Pin
+#define LSM_MOSI 5 // SDA Pin
 
 // Define Amp Pins
-#define AMP_I2S_DOUT 47
-#define AMP_I2S_BCLK 48
-#define AMP_I2S_LRC 45
+#define AMP_I2S_DOUT 1
+#define AMP_I2S_BCLK 19
+#define AMP_I2S_LRC 20
 
 // Define Things
 // Create TFT_eSPI object with the defined pins
@@ -67,7 +67,7 @@ ESP32AnalogRead mic;
 Adafruit_LSM6DSOX sox;
 
 int shakeyshake =
-    6; // Counter for how many lines have been drawn, starts at 6 to indicate a full hexagram (6 lines) and trigger a reset on the first shake/blow
+    0; // Counter for how many lines have been drawn, starts at 6 to indicate a full hexagram (6 lines) and trigger a reset on the first shake/blow
 String trueLines = ""; // Default to Empty
 
 // Audio Setup
@@ -414,6 +414,7 @@ void loop() {
                 case 0:
                     y = 10;
                     shakeyshake++;
+                    spr.fillScreen(TFT_BLACK);
                     draw = true;
                     break;
                 case 1:
