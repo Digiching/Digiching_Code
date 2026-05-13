@@ -1,10 +1,7 @@
 // MPU Libraries
 #include "HardwareSerial.h"
-
 #include "WString.h"
-
 #include "esp32-hal.h"
-
 #include <Adafruit_LSM6DSOX.h>
 
 // Amp Libraries
@@ -15,16 +12,12 @@
 
 // JSON Libraries
 #include <FS.h>
-
 #include <LittleFS.h>
-
 #include <ArduinoJson.h>
 
 // General Libraries
 #include <SPI.h>
-
 #include <pgmspace.h>
-
 #include <ESP32AnalogRead.h>
 
 // Screen dimensions
@@ -54,8 +47,8 @@
 
 // Define Amp Pins
 #define AMP_I2S_DOUT 1
-#define AMP_I2S_BCLK 19
-#define AMP_I2S_LRC 20
+#define AMP_I2S_BCLK 2
+#define AMP_I2S_LRC 3
 
 // Define Things
 // Create TFT_eSPI object with the defined pins
@@ -443,7 +436,7 @@ void loop() {
                     draw = true;
                     break;
                 case 6:
-                    draw = false;
+                    draw = true;
                     y = 0;
                     shakeyshake = 0;
                     trueLines = ""; // Reset for next hexagram
@@ -467,13 +460,17 @@ void loop() {
                         spr.drawRect(72, y, 40, 10, TFT_WHITE);
                         break;
                 }
-            } else {
+            }  
+            
+            if (shakeyshake > 6) {
                 // Hexagram is complete, reset for the next one
                 Serial.println("Hexagram complete, resetting screen.");
                 spr.fillScreen(TFT_BLACK);
             }
 
             if (trueLines.length() == 6) {
+                delay(1500); // Pause briefly to show the completed hexagram before loading the data
+
                 // Hexagram is complete, look up the corresponding hexagram data and display it
                 Serial.println("Hexagram complete with lines: " + trueLines);
                 Hexagram hx;
