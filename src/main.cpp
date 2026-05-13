@@ -107,7 +107,7 @@ bool loadRgb565Bin(const char * path, uint16_t * buffer, size_t pixelCount) {
 }
 
 // Function to get Hexagram data from JSON file based on the lines pattern
-bool getHexagramById(Stream & input, String wantedLines, Hexagram out) {
+bool getHexagramById(Stream & input, String wantedLines, Hexagram &out) {
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, input);
 
