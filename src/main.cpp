@@ -460,6 +460,8 @@ void loop() {
                         spr.drawRect(72, y, 40, 10, TFT_WHITE);
                         break;
                 }
+
+                spr.pushSprite(0, 0);
             }  
             
             if (shakeyshake > 6) {
